@@ -1,0 +1,64 @@
+* 数据文件导入ClickHouse
+
+** 重要说明
+脚本所有参数已移到conf.properties配置文件,可以在配置文件里配置
+
+当然在脚本中配置仍然是有效的,而且是优先级最高的
+  
+** 脚本说明
+   | 脚本名称        | 脚本说明         |
+   |-----------------+------------------|
+   | load_file2ch.sh | 主程序文件       |
+   | start.sh        | 启动主程序的命令 |
+   | monitor.sh      | 程序监控脚本     |
+
+** 参数说明
+   - 所有参数均为 load_file2ch.sh脚本的参数
+   - 长参数以--开头
+   - 短参数以-开头
+
+     
+   | 长参数              | 短参数 | 默认值       | 参数说明                               |
+   |---------------------+--------+--------------+----------------------------------------|
+   | host                | h      | 192.168.3.29 | ClickHouse的主机名                     |
+   | port                | p      | 9000         | ClickHouse的端口号                     |
+   | username            | u      | wedo         | ClickHouse的用户名                     |
+   | password            | P      | ******       | ClickHouse的密码                       |
+   | tablename           | t      | dns_logs     | ClickHouse的表名                       |
+   | minutes             | m      | -5           | 导入最近多少分钟的数据(5)           |
+   | thread_num          | n      | 5            | 开多少个子线程导数据                   |
+   | data_path           | d      | ./data       | 数据文件所在目录                       |
+   | file_max_import_num |        | 10           | 一个线程同时导入的数据文件个数         |
+   | file_min_size       | s      | 1MB          | 数据文件的最小大小(防止文件还没有写完)  |
+
+   例子:
+   #+begin_src shell
+load_file2ch.sh \
+  --port=55394 \
+  --host=192.168.3.29 \
+  --thread_num=5 \
+  --minutes=-5 \
+  --tablename=dns_logs \
+  --data_path=/data/dns_logs \
+  --file_max_import_num=10 \
+   #+end_src
+   
+** 功能说明
+   
+*** 主功能
+    将数据文件实时导入到ClickHouse
+ 
+*** 其他功能
+    1. 打印日志
+       1. 日志按天进行分割,全部放在主程序脚本同级目录下的logs目录下
+       2. 日志文件名按脚本名 + 日期 + .log
+    2. 传递参数
+       1. 可传递带值短参数,如-p 3306
+       2. 可传递带值长参数,如--port=3306
+       3. 可传递不带值参数,如 -y
+    3. 可多线程导数据以提高导入速度
+
+** 使用说明
+   1. 在monitor.sh文件中修改process_name变量的值为主程序的唯一标识,可以写成主程序的文件名
+   2. 在start.sh文件中修改主程序的执行参数
+   3. 在crontab中添加定时任务执行 monitor.sh
