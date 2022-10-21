@@ -1,5 +1,5 @@
 #!/bin/bash
-# 打包一键部署脚本
+# 打包脚本
 set -e
 
 rm -rf load_file2ch.sh.tar.gz
