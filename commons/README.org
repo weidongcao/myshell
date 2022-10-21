@@ -1,0 +1,137 @@
+* 通用函数脚本
+
+
+
+** commons.sh
+
+主要包括以下方法:
+1. logger: 打印日志
+2. get_conf: 获取properties配置文件
+3. myexec: 执行命令(自定义)
+4. oexec: option execuate command
+5. sexec: super  execuate command
+6. get_timestamp: 获取时间戳
+7. bak_old: 备份原文件
+8. convert_IP: IP地址转换
+9. exec_pg: 执行PostgreSQL命令
+   
+*** logger函数
+ 打印日志
+ 实现以下功能:
+	1. 以标准格式输出: 时间 [日志级别] 日志详情
+	2. 同时输出到stdout和文件
+	3. 输出到文件时日志文件名与程序文件名同名不同后缀,如在test.sh文件中调用,输出文件即为logs/test.log
+	4. 输出到文件时邮变量log_file参数控制,如果没有设置该变量,则不输出到文件
+	5. log_file变量请在脚本文件中设置,不要在commons.sh中设置,commons.sh尽量不涉及业务逻辑
+	6. 设置log_file变量把日志输出到同名脚本.log文件
+	7. 日志文件按天分割以免文件过大
+	8. 对以前的日志文件进行压缩
+  9. 可以指定日志级别
+  10. 不同的日志级别控制台颜色不同
+最简单的使用例子:
+#+begin_src shell
+	source commons.sh
+	logger "这是一个测试用例"
+#+end_src
+
+推荐的例子:
+#+begin_src shell
+	#获取当前路径
+	cur_dir=$( cd $(dirname $0); pwd )
+	# 当前脚本文件名
+	file_name="${0##*/}"
+	# 日志文件所在目录(同级logs目录)
+	log_dir="${cur_dir}/logs"
+	# 获取程序文件名,并拼接日志文件路径
+	log_file=${log_dir}/${file_name%.*}.log
+	# 判断日志目录是否存在
+	[[ ! -d ${log_dir} ]] && mkdir -p ${log_dir}
+	#这样,假如以上代码在test.sh中,日志文件会输出到:logs/test.log下
+#+end_src
+
+*** get_conf
+- 读取properties配置文件
+- 将配置项读入到conf_map字典中
+
+*** oexec
+对命令执行结果进行处理
+
+主要考虑以下需求:
+
+1. 命令是否必须执行成功
+2. 命令执行完后的处理(打印日志)
+
+ 必须执行的命令
+ option execuate command
+ 第1个参数: 执行的命令
+ 第2个参数: 执行成功的信息(可选)
+ 第3个参数: 执行失败的信息(可选)
+ 第4个参数: 是否必须执行成功(可选)
+ 第1个参数必须, 2,3,4可选
+
+
+ 如只一个参数的话,与myexec函数相同
+ 多个参数,前一个参数必须不为空,可用引号占位
+例子:
+#+begin_src shell
+     #一个必须执行成功的命令,执行成功返回"success", 执行不成功返回error
+     oexec "some command" "success" "error" "need"
+     #一个必须执行成功的命令,执行成功不返回,执行不成功返回error
+     oexec "some command" "" "error" "true"
+     #一个不必须执行成功的命令,执行成功不返回,执行失败返回error
+     oexec "some command" "" "error"
+#+end_src
+
+*** sexec
+执行命令并对执行结果进行处理
+
+是对oexec的进一步封闭
+
+ 必须执行的命令
+ super execuate command
+
+- 第1个参数: 需要执行的命令(必须)
+- 第2个参数: 命令功能描述(可选, 默认为空, 填cmd直接显示命令)
+- 第3个参数: 是否必须成功(可选, 默认非必须,值有3个:true, false, need)
+- 第4个参数: 命令执行结果状态信息(可选, 默认PASS:FAIL)
+- (执行正常是什么信息, 执行失败是什么信息)
+- 默认成功的状态是SUCCESS
+- 默认失败的状态是FAIL
+- 格式为  PASS:FAIL
+
+ 
+ 如只一个参数的话,与oexec相同,与myexec函数相同
+ 多个参数,前一个参数必须不为空,可用引号占位
+例子:
+#+begin_src shell
+     oexec "date" "当前时间" "need"
+#+end_src
+
+*** 其他见脚本,有详细使用说明
+
+** monitor.sh
+监控服务是否启动
+如果没有启动的话启动
+
+使用的时候可以直接执行,或者加入crontab,例:
+#+begin_src cron
+  # 监控启动
+  * * * * * bash /data/module_name/monitor.sh
+  # 监控停止
+  * * * * * bash /data/module_name/monitor.sh stop
+  # 监控状态
+  * * * * * bash /data/module_name/monitor.sh status
+  # 监控重启
+  * * * * * bash /data/module_name/monitor.sh restart
+#+end_src
+
+ 
+修改的话该脚本不需要修改,只需要改start.sh即可:
+
+监控脚本会检测start.sh 脚本中的process_file变量,根据这个关键字操作进程
+
+一般程序会用3个脚本:
+1. 主程序脚本(load_file2ch.sh/xxx.py等)
+2. start.sh脚本(用于主程序有很多参数传递,以防记不住)
+3. 监控脚本(monitor.sh),即当前
+
