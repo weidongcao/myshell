@@ -1,0 +1,61 @@
+* 快速打包脚本
+**   依赖
+ * 必须安装git，并配置好，确保命令行能把代码down下来
+ * 必须安装java
+ * 必须安装maven
+#+begin_src shell
+    # 1.在项目中增加maven私服
+  
+    # 2.本地下载commons项目并编译
+    git clone git@192.168.8.252:business-modules/dns-commons.git --branch master
+  
+    cd dns-commons/codes/services/product-common
+  
+    mvn clean && mvn package && mvn install
+#+end_src
+** 使用
+ 有两个文件：
+
+ - 脚本主程序：fast_package.sh
+ - 主程序的启动命令：start.sh
+
+
+ 执行的时候只需要执行start.sh即可，它会自行调用fast_package.sh
+
+ 打好包后会放在package目录下
+
+ 还会复制一份到fast_deploy目录下
+** start.sh有3个参数：
+
+ - 第1个参数：模块名，例：dns-resources，默认为dns-base
+ - 第2个参数：git分支或tag，例：dev，feature/YMWP-2779， dev_1.0.15， 默认为dev
+ - 第3个参数：是否强制删除已有的git代码（true/false） --> 当出现文件重命名，文件删的时候必须强制删除， 默认为false
+ 填后面的参数的话前面的参数一定不能为空
+#+begin_src shell
+  # eg1:
+  bash start.sh
+
+  # eg2:
+  bash start.sh dns-resources
+
+  # eg3:
+  bash start.sh dns-resources dev
+
+  # eg4:
+  bash start.sh dns-resources dev true
+#+end_src
+** 一个完整的操作
+   #+begin_src shell
+    # 下载源码
+    git clone git@192.168.8.252:commons-tools/shell-script.git
+
+    # 切换分支
+    git checkout dev
+
+    # 切换目录
+    cd shell-script/fast_package
+
+    # 打包
+    bash start.sh dns-resources dev
+
+   #+end_src
