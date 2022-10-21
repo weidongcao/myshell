@@ -1,0 +1,71 @@
+* 一键部署
+** 依赖
+ - 必须安装docker
+ - 必须安装clickhouse-client
+ - 必须安装docker-compose
+ - 必须在安装业务容器的服务器上执行
+ - 必须安装expect
+
+
+ #+begin_src shell
+   yum install expect-devel
+ #+end_src
+**  使用
+ 有5个文件：
+
+  - 通用函数: commons.sh
+  - 配置文件: conf.properties
+  - 一键部署主程序：fast_deploy.sh
+  - 一键部署的启动命令：start.sh
+  - 对一键部署服务进行打包: package.sh 通过该脚本可以把不必要的文件排除
+
+
+ 执行的时候只需要执行start.sh即可，它会自行调用fast_deploy.sh
+
+
+
+ 根据需要修改conf.properties
+
+ start-script.sh的参数：
+
+ 1. --release_version ：git分支或tag，例：dev，feature/YMWP-2779， v1.0.0_1.0.15， 默认为dev
+ 2. --ch_host   ： ClickHouse集群中其中一台服务器节点的IP，默认为127.0.0.1
+ 3. --ch_port   ： ClickHouse集群中其中一台服务器节点的端口，默认为9000
+ 4. --ch_user   ： ClickHouse集群中其中一台服务器节点的用户名，默认为data_engine
+ 5. --type         ：  安装类型（install/update)，安装即全部重新安装，更新即不重置PostgreSQL，不重置ClickHouse，只部署代码，默认为install
+ 如果是默认值的话可以不填
+
+ 这些参数在conf.properties中都有配置,
+ 在start.sh优先级高于配置文件
+
+ ClickHouse服务器的连接信息需要所有服务器都相同
+
+
+
+ 执行的时候需要把部署包放在该脚本的同级目录下
+
+ 执行一键打包的时候会把部署包也复制到目录目录下一份的
+** 一个完整的操作
+   #+begin_src shell
+# 切换到一键部署
+cd fast_deploy
+
+# 把部署包放在同级目录下
+# dns-resources_dev.tar.gz部署包
+
+# 修改conf.properties
+...
+...
+...
+bash start.sh
+
+# 然后会让你确认配置参数,然后 输入Yes,继续
+
+   #+end_src
+
+** 注意
+  *生产部署一旦出错,后果严重, 这里强制要求输入Yes, 确认参数配置*
+
+  *生产部署一旦出错,后果严重, 这里强制要求输入Yes, 确认参数配置*
+
+  *生产部署一旦出错,后果严重, 这里强制要求输入Yes, 确认参数配置*
